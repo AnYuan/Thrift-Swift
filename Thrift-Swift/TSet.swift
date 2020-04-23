@@ -19,48 +19,49 @@
 
 import Foundation
 
-public struct TSet<Element : TSerializable & Hashable> : SetAlgebra, Hashable, Collection, ExpressibleByArrayLiteral, TSerializable {
+public struct TSet<Element: TSerializable & Hashable & Codable>: SetAlgebra, Hashable, Collection, ExpressibleByArrayLiteral, TSerializable {
+    
   /// Typealias for Storage type
   public typealias Storage = Set<Element>
   
   
   /// Internal Storage used for TSet (Set\<Element\>)
-  internal var storage : Storage
-  
+  public internal(set) var storage: Storage
+
   
   /// Mark: Collection
   
   public typealias Indices = Storage.Indices
   public typealias Index = Storage.Index
-  public typealias IndexDistance = Storage.IndexDistance
   public typealias SubSequence = Storage.SubSequence
-  
+  public typealias Element = Storage.Element
+
   
   public var indices: Indices { return storage.indices }
   
   // Must implement isEmpty even though both SetAlgebra and Collection provide it due to their conflciting default implementations
   public var isEmpty: Bool { return storage.isEmpty }
   
-  public func distance(from start: Index, to end: Index) -> IndexDistance {
+  public func distance(from start: Index, to end: Index) -> Int {
     return storage.distance(from: start, to: end)
   }
   
-  public func index(_ i: Index, offsetBy n: IndexDistance) -> Index {
+  public func index(_ i: Index, offsetBy n: Int) -> Index {
     return storage.index(i, offsetBy: n)
   }
   
-  public func index(_ i: Index, offsetBy n: IndexDistance, limitedBy limit: Index) -> Index? {
+  public func index(_ i: Index, offsetBy n: Int, limitedBy limit: Index) -> Index? {
     return storage.index(i, offsetBy: n, limitedBy: limit)
   }
   
   #if swift(>=3.2)
-  public subscript (position: Storage.Index) -> Element {
-      return storage[position]
+    public subscript (position: Storage.Index) -> Element {
+        return storage[position]
     }
   #else
-  public subscript (position: Storage.Index) -> Element? {
-    return storage[position]
-  }
+    public subscript (position: Storage.Index) -> Element? {
+        return storage[position]
+    }
   #endif
   
   /// Mark: SetAlgebra
@@ -126,15 +127,12 @@ public struct TSet<Element : TSerializable & Hashable> : SetAlgebra, Hashable, C
 
   
   /// Mark: Hashable
-  public var hashValue : Int {
-    let prime = 31
-    var result = 1
-    for element in storage {
-      result = prime &* result &+ element.hashValue
-    }
-    return result
+  public func hash(into hasher: inout Hasher) {
+      storage.forEach {
+          hasher.combine($0)
+      }
   }
-  
+
   /// Mark: TSerializable
   public static var thriftType : TType { return .set }
   
@@ -186,4 +184,25 @@ extension TSet: CustomStringConvertible, CustomDebugStringConvertible {
 
 public func ==<Element>(lhs: TSet<Element>, rhs: TSet<Element>) -> Bool {
   return lhs.storage == rhs.storage
+}
+
+// MARK: - Codable conformance
+
+extension TSet: Encodable {
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.unkeyedContainer()
+        try container.encode(storage)
+    }
+
+}
+
+extension TSet: Decodable {
+
+    public init(from decoder: Decoder) throws {
+        self.init()
+        var container = try decoder.unkeyedContainer()
+        storage = try container.decode(Storage.self)
+    }
+
 }
