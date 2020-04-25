@@ -8,7 +8,7 @@
 
 import XCTest
 import Foundation
-@testable import Thrift
+@testable import Thrift_Swift
 
 
 /// Testing Binary protocol read/write against itself
@@ -96,7 +96,7 @@ class TCompactProtocolTests: XCTestCase {
       return
     }
     
-    XCTAssertEqual(writeVal, readVal, "Error with String, wrote \(writeVal) but read \(readVal)")
+    XCTAssertEqual(writeVal, readVal, "Error with String, wrote \(writeVal) but read \(String(describing: readVal))")
   }
   
   func testDataWriteRead() {
@@ -122,7 +122,7 @@ class TCompactProtocolTests: XCTestCase {
     do {
       let readVal = try TApplicationError.read(from: proto)
       XCTAssertEqual(readVal.error.thriftErrorCode, writeVal.error.thriftErrorCode, "Error case mismatch, expected \(readVal.error) got \(writeVal.error)")
-      XCTAssertEqual(readVal.message, writeVal.message, "Error message mismatch, expected \(readVal.message) got \(writeVal.message)")
+        XCTAssertEqual(readVal.message, writeVal.message, "Error message mismatch, expected \(String(describing: readVal.message)) got \(String(describing: writeVal.message))")
     } catch let error {
       XCTAssertFalse(true, "Caught Error attempting to read \(error)")
     }

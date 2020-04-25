@@ -1,5 +1,5 @@
 import XCTest
-@testable import Thrift
+@testable import Thrift_Swift
 
 class ThriftTests: XCTestCase {
   func testVersion() {
