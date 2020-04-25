@@ -67,7 +67,7 @@ public class TCompactProtocol: TProtocol {
   /// Mark: - TCompactProtocol helpers
   
   func writebyteDirect(_ byte: UInt8) throws {
-    let byte = Data(bytes: [byte])
+    let byte = Data([byte])
     try ProtocolTransportTry(error: TProtocolError(message: "Transport Write Failed")) {
       try self.transport.write(data: byte)
     }
@@ -90,7 +90,7 @@ public class TCompactProtocol: TProtocol {
     }
     
     try ProtocolTransportTry(error: TProtocolError(message: "Transport Write Failed")) {
-      try self.transport.write(data: Data(bytes: i32buf[0..<idx]))
+      try self.transport.write(data: Data(i32buf[0..<idx]))
     }
   }
   
@@ -111,7 +111,7 @@ public class TCompactProtocol: TProtocol {
     }
     
     try ProtocolTransportTry(error: TProtocolError(message: "Transport Write Failed")) {
-      try self.transport.write(data: Data(bytes: varint64out[0..<idx]))
+      try self.transport.write(data: Data(varint64out[0..<idx]))
     }
   
   }
@@ -375,8 +375,10 @@ public class TCompactProtocol: TProtocol {
       buff = try self.transport.readAll(size: 8)
     }
     
-    let i64: UInt64 = buff.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) -> UInt64 in
-      return UnsafePointer<UInt64>(OpaquePointer(ptr)).pointee
+    let i64: UInt64 = buff.withUnsafeBytes { unsafeRawBufferPointer -> UInt64 in
+        let unsafeBufferPointer = unsafeRawBufferPointer.bindMemory(to: UInt8.self)
+        let unsafePointer = unsafeBufferPointer.baseAddress!
+        return UnsafePointer<UInt64>(OpaquePointer(unsafePointer)).pointee
     }
     let bits = CFSwapInt64LittleToHost(i64)
     return Double(bitPattern: bits)

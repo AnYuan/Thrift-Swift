@@ -184,16 +184,15 @@ public class TSocketTransport : TTransport {
     var buff = Array<UInt8>.init(repeating: 0, count: size)
     let readBytes = Sys.read(socketDescriptor, &buff, size)
     
-    return Data(bytes: buff[0..<readBytes])
+    return Data(buff[0..<readBytes])
   }
   
   public func write(data: Data) {
     var bytesToWrite = data.count
     var writeBuffer = data
     while bytesToWrite > 0 {
-      let written = writeBuffer.withUnsafeBytes {
-        Sys.write(socketDescriptor, $0, writeBuffer.count)
-      }
+        let nsdata = writeBuffer as NSData
+        let written = Sys.write(socketDescriptor, nsdata.bytes, writeBuffer.count)
       writeBuffer = writeBuffer.subdata(in: written ..< writeBuffer.count)
       bytesToWrite -= written
     }

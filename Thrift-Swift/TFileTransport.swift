@@ -87,9 +87,9 @@ public class TFileTransport: TTransport {
   }
   
   public func write(data: Data) throws {
-    let bytesWritten = data.withUnsafeBytes {
-      fwrite($0, 1, data.count, self.fileHandle)
-    }
+    let nsdata = data as NSData
+    let bytesWritten = fwrite(nsdata.bytes, 1, data.count, self.fileHandle)
+
     if bytesWritten != data.count {
       throw TTransportError(error: .unknown)
     }

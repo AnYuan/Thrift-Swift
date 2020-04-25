@@ -64,7 +64,7 @@ import CoreFoundation
         if bytesRead <= 0 {
           throw TTransportError(error: .notOpen)
         }
-        read.append(Data(bytes: buffer))
+        read.append(Data(buffer))
       }
       return read
     }
@@ -85,7 +85,7 @@ import CoreFoundation
           break
         }
         
-        read.append(Data(bytes: buffer))
+        read.append(Data(buffer))
       }
       return read
     }
@@ -97,9 +97,13 @@ import CoreFoundation
       
       var bytesWritten = 0
       while bytesWritten < data.count {
-        bytesWritten = data.withUnsafeBytes {
-          return output.write($0, maxLength: data.count)
-        }
+        
+        
+        bytesWritten = data.withUnsafeBytes({ unsafeRawBufferPointer -> Int in
+            let unsafeBufferPointer = unsafeRawBufferPointer.bindMemory(to: UInt8.self)
+            let unsafePointer = unsafeBufferPointer.baseAddress!
+            return output.write(unsafePointer, maxLength: data.count)
+        })
         
         if bytesWritten == -1 {
           throw TTransportError(error: .notOpen)

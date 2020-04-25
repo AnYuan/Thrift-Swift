@@ -17,7 +17,7 @@
  * under the License.
  */
 
-public struct TList<Element : TSerializable> : RandomAccessCollection, MutableCollection, ExpressibleByArrayLiteral, TSerializable, Hashable {
+public struct TList<Element : TSerializable & Hashable & Codable> : RandomAccessCollection, MutableCollection, ExpressibleByArrayLiteral, TSerializable, Hashable {
   public typealias Storage = Array<Element>
   public typealias Indices = Storage.Indices
 
@@ -31,15 +31,12 @@ public struct TList<Element : TSerializable> : RandomAccessCollection, MutableCo
   }
 
   /// Mark: Hashable
-  public var hashValue : Int {
-    let prime = 31
-    var result = 1
-    for element in storage {
-      result = prime &* result &+ element.hashValue
-    }
-    return result
+  public func hash(into hasher: inout Hasher) {
+      storage.forEach {
+          hasher.combine($0)
+      }
   }
-  
+
   /// Mark: TSerializable
   public static var thriftType : TType { return .list }
 
